@@ -48,4 +48,4 @@ Presione 'q' para cerrar la cámara
 ## 📚 Créditos y Referencias
 
 El código utilizado en `yolo_detect.py` fue basado y adaptado del siguiente tutorial:
-* [Tutorial de YOLOv8 (YouTube)](#)
+* https://youtu.be/r0RspiLG260?si=vngWBlRWqf2YWezb 
