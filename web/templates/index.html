@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Manómetro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <div class="header-content">
+                <h1>Monitor de Presión</h1>
+                <div class="status-indicator">
+                    <div class="status-dot online" id="connection-dot"></div>
+                    <span id="connection-status">Conectado a Jetson</span>
+                </div>
+            </div>
+            <p class="subtitle">Monitoreo Remoto en Tiempo Real</p>
+        </header>
+
+        <main class="grid-layout">
+            <section class="video-section card">
+                <h2>Cámara en Tiempo Real</h2>
+                <div class="video-wrapper">
+                    <!-- The MJPEG stream from the Flask backend -->
+                    <img id="video-feed" src="/video_feed" alt="Video Feed no disponible" />
+                    <div class="overlay-controls">
+                        <span class="live-badge">LIVE</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="metrics-section">
+                <div class="card gauge-card">
+                    <h2>Presión Actual</h2>
+                    
+                    <div class="gauge-container">
+                        <svg class="circular-gauge" viewBox="0 0 100 100">
+                            <!-- Background track -->
+                            <path class="gauge-track" d="M 20 80 A 45 45 0 1 1 80 80" />
+                            <!-- Value track -->
+                            <path class="gauge-value" id="gauge-path" d="M 20 80 A 45 45 0 0 1 20 80" />
+                        </svg>
+                        <div class="gauge-readout">
+                            <span id="pressure-value">--</span>
+                            <span class="unit">PSI</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert-box" id="alert-box">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        <span>Alerta: ¡Presión Alta detectada!</span>
+                    </div>
+                </div>
+
+                <div class="card status-card">
+                    <h2>Estado del Sistema</h2>
+                    <ul class="status-list">
+                        <li>
+                            <span class="label">Modelo</span>
+                            <span class="value">TensorRT YOLOv8 Seg</span>
+                        </li>
+                        <li>
+                            <span class="label">Límite de Alerta</span>
+                            <span class="value">10.0 PSI</span>
+                        </li>
+                        <li>
+                            <span class="label">Hardware</span>
+                            <span class="value">NVIDIA Jetson Nano</span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

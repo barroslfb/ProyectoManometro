@@ -1,0 +1,30 @@
+# Compiled Python
+__pycache__/
+*.pyc
+
+# Environments
+.env
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# Model Files (Too large for Git)
+*.engine
+*.onnx
+*.pt
+*.pth
+
+# Videos (Too large for Git)
+*.mp4
+*.avi
+
+# Output
+frames_manometro_registrados/
+*.log
+
+# Greengrass Deployment Scripts (keep yaml and sh, but ignore build folders)
+greengrass-build/
+.env

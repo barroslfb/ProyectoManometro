@@ -1,0 +1,32 @@
+---
+RecipeFormatVersion: "2020-01-25"
+ComponentName: "com.manometro.leitor"
+ComponentVersion: "1.1.0"
+ComponentDescription: "Leitura do manometro via TensorRT e IPC"
+ComponentPublisher: "Amazon"
+ComponentConfiguration:
+  DefaultConfiguration:
+    accessControl:
+      aws.greengrass.ipc.mqttproxy:
+        "com.manometro.leitor:mqttproxy:1":
+          policyDescription: "Permite publicar dados"
+          operations:
+            - "aws.greengrass#PublishToIoTCore"
+          resources:
+            - "manometro/dados"
+        "com.manometro.leitor:mqttproxy:2":
+          policyDescription: "Permite subscrever ao controle"
+          operations:
+            - "aws.greengrass#SubscribeToIoTCore"
+          resources:
+            - "manometro/controle"
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      # O Greengrass roda a partir do diretorio do artefato. 
+      # Substitua 'best.engine' pelo nome do seu modelo compilado na Jetson
+      Run:
+        Script: |
+          PYTHONPATH=/home/luiz/.local/lib/python3.6/site-packages python3 {artifacts:path}/gauge_reader.py --model {artifacts:path}/segmentacion.engine --source /home/luiz/ProyectoManometro/Analog_Gauge_Video.mp4
+        RequiresPrivilege: true
