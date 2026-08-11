@@ -163,12 +163,14 @@ is_inferring = True
 import awsiot.greengrasscoreipc.client as client
 from awsiot.greengrasscoreipc.model import IoTCoreMessage, SubscribeToIoTCoreRequest, QOS
 
+requested_source = None
+
 class StreamHandler(client.SubscribeToIoTCoreStreamHandler):
     def __init__(self):
         super().__init__()
 
     def on_stream_event(self, event: IoTCoreMessage) -> None:
-        global is_inferring
+        global is_inferring, requested_source
         try:
             message = str(event.message.payload, "utf-8")
             data = json.loads(message)
@@ -178,6 +180,9 @@ class StreamHandler(client.SubscribeToIoTCoreStreamHandler):
             elif "encender" in data:
                 is_inferring = bool(data["encender"])
                 print(f"\n[MQTT] Comando recibido: ENCENDER = {is_inferring}", flush=True)
+            if "source" in data:
+                requested_source = data["source"]
+                print(f"\n[MQTT] Comando recibido: SOURCE = {requested_source}", flush=True)
         except Exception as e:
             print(f"[MQTT] Error al analizar el mensaje: {e}", flush=True)
 
@@ -377,7 +382,7 @@ def parse_ocr_number(text):
 # PIPELINE EJECUCION PRINCIPAL
 # ==============================================================================
 def main(args):
-    global current_frame, current_pressure
+    global current_frame, current_pressure, requested_source
     os.makedirs(SAVE_DIR, exist_ok=True)
     model = TRTYOLOv8Seg(args.model)
 
@@ -411,12 +416,44 @@ def main(args):
     try:
         setup_mqtt_subscription()
         while True:
+            if requested_source is not None:
+                print(f"[INFO] Cambiando fuente de video a: {requested_source}")
+                cap.release()
+                if requested_source == "droidcam":
+                    source = "http://10.218.6.103:4747/video"
+                else:
+                    source = int(args.source) if args.source.isdigit() else args.source
+                
+                cap = cv2.VideoCapture(source)
+                frame_count = 0
+                best_max_crop = {"conf": -1.0, "img": None}
+                best_min_crop = {"conf": -1.0, "img": None}
+                physical_max_val = None
+                physical_min_val = None
+                last_min_pt = None
+                last_max_pt = None
+                requested_source = None
+                if not cap.isOpened():
+                    print(f"[ERROR] Fallo al abrir nueva fuente: {source}")
+                continue
+
             ok, frame = cap.read()
             if not ok:
                 if isinstance(source, str):
-                    print("[INFO] Video finalizado. Reiniciando el loop...")
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                    continue
+                    if source.startswith("http"):
+                        print(f"[ERROR] Sin conexion a {source}. Reintentando...", flush=True)
+                        error_frame = np.zeros((480, 640, 3), dtype=np.uint8)
+                        cv2.putText(error_frame, "Buscando IP Camera...", (50, 240), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 165, 255), 2)
+                        upload_image_to_s3(error_frame)
+                        import time
+                        time.sleep(3)
+                        cap.release()
+                        cap = cv2.VideoCapture(source)
+                        continue
+                    else:
+                        print("[INFO] Video finalizado. Reiniciando el loop...", flush=True)
+                        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                        continue
                 else:
                     break
             
